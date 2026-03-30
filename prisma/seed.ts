@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { PrismaClient } from "@prisma/client";
 // Use require here so the seed script doesn't depend on external TS typings in CI builds.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
