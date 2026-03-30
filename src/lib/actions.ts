@@ -14,6 +14,10 @@ import {
 } from "@/lib/auth";
 import { db } from "@/lib/db";
 
+const BOOKING_STATUSES = ["PENDING", "CONFIRMED", "CANCELLED"] as const;
+type BookingStatus = (typeof BOOKING_STATUSES)[number];
+type UserRole = "USER" | "ADMIN";
+
 const authSchema = z.object({
   name: z.string().min(2).optional(),
   email: z.string().email(),
@@ -145,8 +149,9 @@ export async function loginAction(formData: FormData) {
     throw new Error("Incorrect email or password.");
   }
 
-  await createSession({ userId: user.id, role: user.role });
-  redirect(user.role === "ADMIN" ? "/admin" : "/");
+  const role: UserRole = user.role === "ADMIN" ? "ADMIN" : "USER";
+  await createSession({ userId: user.id, role });
+  redirect(role === "ADMIN" ? "/admin" : "/");
 }
 
 export async function logoutAction() {
@@ -384,5 +389,3 @@ export async function updateBookingStatusAction(formData: FormData) {
   revalidatePath("/admin");
   revalidatePath("/profile");
 }
-const BOOKING_STATUSES = ["PENDING", "CONFIRMED", "CANCELLED"] as const;
-type BookingStatus = (typeof BOOKING_STATUSES)[number];
