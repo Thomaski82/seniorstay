@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  passwordHash  String
+  role          String         @default("USER")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  bookings      Booking[]
+  favorites     Favorite[]
+  reviews       Review[]
+  notifications Notification[]
+}
+
+model CareHome {
+  id               String         @id @default(cuid())
+  name             String
+  slug             String         @unique
+  city             String
+  country          String
+  address          String
+  pricePerMonth    Int
+  description      String
+  shortDescription String
+  photos           String
+  services         String
+  ratingCache      Float          @default(0)
+  reviewCountCache Int            @default(0)
+  featured         Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  availabilities   Availability[]
+  bookings         Booking[]
+  favorites        Favorite[]
+  reviews          Review[]
+}
+
+model Availability {
+  id           String   @id @default(cuid())
+  careHomeId   String
+  monthStart   DateTime
+  availableAll Int
+  careHome     CareHome @relation(fields: [careHomeId], references: [id], onDelete: Cascade)
+
+  @@unique([careHomeId, monthStart])
+}
+
+model Booking {
+  id            String        @id @default(cuid())
+  userId        String
+  careHomeId    String
+  residentName  String
+  startDate     DateTime
+  months        Int
+  totalPrice    Int
+  status        String        @default("CONFIRMED")
+  createdAt     DateTime      @default(now())
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  careHome      CareHome      @relation(fields: [careHomeId], references: [id], onDelete: Cascade)
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
+  userId     String
+  careHomeId String
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  careHome   CareHome @relation(fields: [careHomeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, careHomeId])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  userId     String
+  careHomeId String
+  rating     Int
+  comment    String
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  careHome   CareHome @relation(fields: [careHomeId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
