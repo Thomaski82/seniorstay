@@ -296,7 +296,11 @@ export async function upsertListingAction(formData: FormData) {
   });
 
   if (!parsed.success) {
-    throw new Error("Please complete all listing fields.");
+    throw new Error(
+      `Invalid listing fields: ${parsed.error.issues
+        .map((issue) => issue.path.join(".") || "unknown")
+        .join(", ")}`
+    );
   }
 
   const slug = await createUniqueSlug(parsed.data.name, parsed.data.id);
