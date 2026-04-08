@@ -109,3 +109,4 @@ docker run -p 3000:3000 --env-file .env seniorstay
 - Listings store photo URLs and service tags in JSON-encoded strings to keep the schema simple while remaining easy to evolve later.
 - The temporary demo-mode fallback is still present for browse pages; for a strict production-only deployment, we can remove that next.
 
+
