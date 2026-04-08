@@ -1,8 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
 
+import { getAvailabilitySnapshot, parseJsonArray } from "@/lib/care-homes";
 import { formatCurrency } from "@/lib/format";
-import { parseJsonArray } from "@/lib/care-homes";
+import type { Locale } from "@/lib/locale";
 
 type HomeCardProps = {
   home: {
@@ -16,12 +17,33 @@ type HomeCardProps = {
     reviewCountCache: number;
     photos: string;
     services: string;
+    availabilities?: Array<{ monthStart: Date; availableAll: number }>;
   };
+  locale?: Locale;
 };
 
-export function HomeCard({ home }: HomeCardProps) {
+export function HomeCard({ home, locale = "en" }: HomeCardProps) {
   const [cover] = parseJsonArray(home.photos);
   const services = parseJsonArray(home.services).slice(0, 3);
+  const { freeRooms, occupiedRooms } = getAvailabilitySnapshot(home);
+  const copy =
+    locale === "pl"
+      ? {
+          reviews: "opinii",
+          month: "/ miesiac",
+          details: "Zobacz szczegoly",
+          free: "wolne pokoje",
+          occupied: "zajete",
+          now: "Dostepnosc teraz"
+        }
+      : {
+          reviews: "reviews",
+          month: "/ month",
+          details: "View details",
+          free: "free rooms",
+          occupied: "occupied",
+          now: "Availability now"
+        };
 
   return (
     <article className="listing-card">
@@ -38,11 +60,20 @@ export function HomeCard({ home }: HomeCardProps) {
           </div>
           <div className="rating-badge">
             <strong>{home.ratingCache.toFixed(1)}</strong>
-            <span>{home.reviewCountCache} reviews</span>
+            <span>{home.reviewCountCache} {copy.reviews}</span>
           </div>
         </div>
 
         <p>{home.shortDescription}</p>
+
+        <div className="availability-strip">
+          <span className="availability-pill availability-open">
+            {copy.now}: {freeRooms} {copy.free}
+          </span>
+          <span className="availability-pill">
+            {occupiedRooms} {copy.occupied}
+          </span>
+        </div>
 
         <div className="chip-row">
           {services.map((service) => (
@@ -55,10 +86,10 @@ export function HomeCard({ home }: HomeCardProps) {
         <div className="listing-footer">
           <div>
             <span className="price">{formatCurrency(home.pricePerMonth)}</span>
-            <span className="muted"> / month</span>
+            <span className="muted"> {copy.month}</span>
           </div>
-          <Link href={`/listings/${home.slug}`} className="button button-primary">
-            View details
+          <Link href={`/listings/${home.slug}${locale === "pl" ? "?lang=pl" : ""}`} className="button button-primary">
+            {copy.details}
           </Link>
         </div>
       </div>

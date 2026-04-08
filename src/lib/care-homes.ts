@@ -9,6 +9,8 @@ export type SearchParams = {
   maxPrice?: string;
   services?: string;
   sort?: string;
+  availableOnly?: string;
+  lang?: string;
 };
 
 export function parseJsonArray(value: string) {
@@ -17,6 +19,19 @@ export function parseJsonArray(value: string) {
   } catch {
     return [];
   }
+}
+
+export function getAvailabilitySnapshot(home: { availabilities?: Array<{ availableAll: number }> }) {
+  const availabilities = home.availabilities ?? [];
+  const firstSlot = availabilities[0];
+  const freeRooms = firstSlot?.availableAll ?? 0;
+  const totalRooms = availabilities.length ? Math.max(...availabilities.map((slot) => slot.availableAll)) : 0;
+
+  return {
+    freeRooms,
+    occupiedRooms: Math.max(totalRooms - freeRooms, 0),
+    totalRooms
+  };
 }
 
 function filterDemoHomes(params: SearchParams = {}) {
@@ -37,8 +52,9 @@ function filterDemoHomes(params: SearchParams = {}) {
     const matchesServices =
       !selectedServices?.length ||
       selectedServices.every((service) => services.some((item) => item.toLowerCase().includes(service.toLowerCase())));
+    const matchesAvailability = params.availableOnly !== "on" || home.availabilities.some((slot) => slot.availableAll > 0);
 
-    return matchesLocation && matchesMin && matchesMax && matchesServices;
+    return matchesLocation && matchesMin && matchesMax && matchesServices && matchesAvailability;
   });
 
   if (params.sort === "price-asc") {
@@ -47,6 +63,8 @@ function filterDemoHomes(params: SearchParams = {}) {
     filtered.sort((a, b) => b.pricePerMonth - a.pricePerMonth);
   } else if (params.sort === "rating") {
     filtered.sort((a, b) => b.ratingCache - a.ratingCache);
+  } else if (params.sort === "availability") {
+    filtered.sort((a, b) => getAvailabilitySnapshot(b).freeRooms - getAvailabilitySnapshot(a).freeRooms);
   } else {
     filtered.sort((a, b) => Number(b.featured) - Number(a.featured) || b.ratingCache - a.ratingCache);
   }
@@ -90,13 +108,25 @@ export async function getCareHomes(params: SearchParams = {}) {
     }
   }
 
+  if (params.availableOnly === "on") {
+    where.availabilities = {
+      some: {
+        availableAll: {
+          gt: 0
+        }
+      }
+    };
+  }
+
   if (params.sort === "price-asc") orderBy.push({ pricePerMonth: "asc" });
   if (params.sort === "price-desc") orderBy.push({ pricePerMonth: "desc" });
   if (params.sort === "rating") orderBy.push({ ratingCache: "desc" });
-  if (!orderBy.length) orderBy.push({ featured: "desc" }, { ratingCache: "desc" });
+  if (!orderBy.length || params.sort === "availability") {
+    orderBy.push({ featured: "desc" }, { ratingCache: "desc" });
+  }
 
   try {
-    return await db.careHome.findMany({
+    const homes = await db.careHome.findMany({
       where,
       orderBy,
       include: {
@@ -115,6 +145,12 @@ export async function getCareHomes(params: SearchParams = {}) {
         }
       }
     });
+
+    if (params.sort === "availability") {
+      homes.sort((a, b) => getAvailabilitySnapshot(b).freeRooms - getAvailabilitySnapshot(a).freeRooms);
+    }
+
+    return homes;
   } catch {
     return filterDemoHomes(params);
   }

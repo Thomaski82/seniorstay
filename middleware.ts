@@ -7,14 +7,24 @@ const secret = process.env.AUTH_SECRET
   : null;
 
 export async function middleware(request: NextRequest) {
+  const locale = request.nextUrl.searchParams.get("lang");
   const token = request.cookies.get("seniorstay_session")?.value;
   const pathname = request.nextUrl.pathname;
+  const response = NextResponse.next();
+
+  if (locale === "pl" || locale === "en") {
+    response.cookies.set("site_locale", locale, {
+      path: "/",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 365
+    });
+  }
 
   if (!token || !secret) {
     if (pathname.startsWith("/profile") || pathname.startsWith("/admin")) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
-    return NextResponse.next();
+    return response;
   }
 
   try {
@@ -25,15 +35,15 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/", request.url));
     }
 
-    return NextResponse.next();
+    return response;
   } catch {
     if (pathname.startsWith("/profile") || pathname.startsWith("/admin")) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
-    return NextResponse.next();
+    return response;
   }
 }
 
 export const config = {
-  matcher: ["/profile/:path*", "/admin/:path*"]
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"]
 };

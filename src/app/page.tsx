@@ -4,6 +4,7 @@ import { HomeCard } from "@/components/home-card";
 import { SearchFilters } from "@/components/search-filters";
 import { getCareHomes, getFeaturedHomes, type SearchParams } from "@/lib/care-homes";
 import { formatCurrency } from "@/lib/format";
+import { getLocaleFromSearchParam } from "@/lib/locale";
 
 export default async function Home({
   searchParams
@@ -11,40 +12,66 @@ export default async function Home({
   searchParams: Promise<SearchParams>;
 }) {
   const params = await searchParams;
+  const locale = getLocaleFromSearchParam(params.lang);
   const [homes, featured] = await Promise.all([getCareHomes(params), getFeaturedHomes()]);
+  const copy =
+    locale === "pl"
+      ? {
+          eyebrow: "Rezerwacja opieki senioralnej bez chaosu",
+          title: "Znajdz sprawdzone domy seniora i placowki opieki z pelna przejrzystoscia.",
+          text: "Porownuj ceny, uslugi, dostepnosc i opinie rodzin w jednym nowoczesnym marketplace.",
+          seededHomes: "przykladowych obiektow",
+          careOptions: "opcji opieki",
+          onePlace: "jedno miejsce",
+          onePlaceLabel: "do wyszukiwania i rezerwacji",
+          featured: "Polecane pobyty",
+          rating: "ocena",
+          browse: "Przegladaj domy",
+          available: "dostepnych placowek"
+        }
+      : {
+          eyebrow: "Senior care booking, simplified",
+          title: "Find trusted assisted living and senior care homes with clarity.",
+          text: "Compare pricing, care services, availability, and family reviews in one mobile-friendly marketplace.",
+          seededHomes: "seeded homes",
+          careOptions: "care options",
+          onePlace: "1 place",
+          onePlaceLabel: "for search and booking",
+          featured: "Featured stays",
+          rating: "rating",
+          browse: "Browse homes",
+          available: "care homes available"
+        };
 
   return (
     <main>
       <section className="hero">
         <div className="container hero-grid">
           <div className="hero-copy">
-            <p className="eyebrow">Senior care booking, simplified</p>
-            <h1>Find trusted assisted living and senior care homes with clarity.</h1>
-            <p className="hero-text">
-              Compare pricing, care services, availability, and family reviews in one
-              mobile-friendly marketplace.
-            </p>
+            <p className="eyebrow">{copy.eyebrow}</p>
+            <h1>{copy.title}</h1>
+            <p className="hero-text">{copy.text}</p>
             <div className="hero-metrics">
               <div>
                 <strong>5+</strong>
-                <span>seeded homes</span>
+                <span>{copy.seededHomes}</span>
               </div>
               <div>
                 <strong>24/7</strong>
-                <span>care options</span>
+                <span>{copy.careOptions}</span>
               </div>
               <div>
-                <strong>1 place</strong>
-                <span>for search and booking</span>
+                <strong>{copy.onePlace}</strong>
+                <span>{copy.onePlaceLabel}</span>
               </div>
             </div>
           </div>
 
           <div className="hero-card">
-            <p className="eyebrow">Featured stays</p>
+            <p className="eyebrow">{copy.featured}</p>
             <div className="stack-md">
               {featured.map((home) => (
-                <Link href={`/listings/${home.slug}`} key={home.id} className="hero-feature">
+                <Link href={`/listings/${home.slug}${locale === "pl" ? "?lang=pl" : ""}`} key={home.id} className="hero-feature">
                   <div>
                     <strong>{home.name}</strong>
                     <span>
@@ -53,7 +80,7 @@ export default async function Home({
                   </div>
                   <div>
                     <strong>{formatCurrency(home.pricePerMonth)}</strong>
-                    <span>{home.ratingCache.toFixed(1)} rating</span>
+                    <span>{home.ratingCache.toFixed(1)} {copy.rating}</span>
                   </div>
                 </Link>
               ))}
@@ -63,20 +90,20 @@ export default async function Home({
       </section>
 
       <section className="container section">
-        <SearchFilters params={params} />
+        <SearchFilters params={params} locale={locale} />
       </section>
 
       <section className="container section">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Browse homes</p>
-            <h2>{homes.length} care homes available</h2>
+            <p className="eyebrow">{copy.browse}</p>
+            <h2>{homes.length} {copy.available}</h2>
           </div>
         </div>
 
         <div className="listing-grid">
           {homes.map((home) => (
-            <HomeCard key={home.id} home={home} />
+            <HomeCard key={home.id} home={home} locale={locale} />
           ))}
         </div>
       </section>
