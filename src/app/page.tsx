@@ -18,7 +18,7 @@ export default async function Home({
     locale === "pl"
       ? {
           eyebrow: "Rezerwacja opieki senioralnej bez chaosu",
-          title: "Znajdz sprawdzone domy seniora i placowki opieki z pelna przejrzystoscia.",
+          title: "Bezpieczny dom seniora zaczyna sie tutaj.",
           text: "Porownuj ceny, uslugi, dostepnosc i opinie rodzin w jednym nowoczesnym marketplace.",
           seededHomes: "przykladowych obiektow",
           careOptions: "opcji opieki",
@@ -31,7 +31,7 @@ export default async function Home({
         }
       : {
           eyebrow: "Senior care booking, simplified",
-          title: "Find trusted assisted living and senior care homes with clarity.",
+          title: "A safer senior home starts here.",
           text: "Compare pricing, care services, availability, and family reviews in one mobile-friendly marketplace.",
           seededHomes: "seeded homes",
           careOptions: "care options",
