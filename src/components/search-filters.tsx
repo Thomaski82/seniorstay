@@ -1,4 +1,4 @@
-import { getAllServices, type SearchParams } from "@/lib/care-homes";
+import { getAllServices, translateService, type SearchParams } from "@/lib/care-homes";
 import type { Locale } from "@/lib/locale";
 
 type SearchFiltersProps = {
@@ -79,7 +79,7 @@ export async function SearchFilters({ params, locale = "en" }: SearchFiltersProp
             <option value="">{copy.anyServices}</option>
             {services.map((service) => (
               <option key={service} value={service}>
-                {service}
+                {translateService(service, locale)}
               </option>
             ))}
           </select>

@@ -6,9 +6,50 @@ import { AdminListingForm } from "@/components/admin-listing-form";
 import { StatusForm } from "@/components/status-form";
 import { db } from "@/lib/db";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { getLocaleFromSearchParam } from "@/lib/locale";
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams
+}: {
+  searchParams: Promise<{ lang?: string }>;
+}) {
+  const params = await searchParams;
+  const locale = getLocaleFromSearchParam(params.lang);
   await requireAdmin();
+  const copy =
+    locale === "pl"
+      ? {
+          panel: "Panel admina",
+          title: "Zarzadzaj ofertami i rezerwacjami",
+          create: "Utworz lub edytuj oferte",
+          existing: "Istniejace oferty",
+          month: "/ miesiac",
+          edit: "Edytuj",
+          delete: "Usun",
+          manageBookings: "Zarzadzaj rezerwacjami",
+          guest: "Gosc",
+          facility: "Placowka",
+          resident: "Senior",
+          start: "Start",
+          total: "Lacznie",
+          status: "Status"
+        }
+      : {
+          panel: "Admin panel",
+          title: "Manage listings and bookings",
+          create: "Create or update listing",
+          existing: "Existing listings",
+          month: "/ month",
+          edit: "Edit",
+          delete: "Delete",
+          manageBookings: "Manage bookings",
+          guest: "Guest",
+          facility: "Facility",
+          resident: "Resident",
+          start: "Start",
+          total: "Total",
+          status: "Status"
+        };
 
   const [listings, bookings] = await Promise.all([
     db.careHome.findMany({
@@ -27,22 +68,22 @@ export default async function AdminPage() {
     <main className="container section stack-xl">
       <section className="section-heading">
         <div>
-          <p className="eyebrow">Admin panel</p>
-          <h1>Manage listings and bookings</h1>
+          <p className="eyebrow">{copy.panel}</p>
+          <h1>{copy.title}</h1>
         </div>
       </section>
 
       <section className="admin-grid">
         <div className="stack-lg">
           <div className="section-heading">
-            <h2>Create or update listing</h2>
+            <h2>{copy.create}</h2>
           </div>
           <AdminListingForm />
         </div>
 
         <div className="card stack-md">
           <div className="section-heading">
-            <h2>Existing listings</h2>
+            <h2>{copy.existing}</h2>
           </div>
           <div className="stack-md">
             {listings.map((listing) => (
@@ -52,16 +93,16 @@ export default async function AdminPage() {
                   <p className="muted">
                     {listing.city}, {listing.country}
                   </p>
-                  <p className="muted">{formatCurrency(listing.pricePerMonth)} / month</p>
+                  <p className="muted">{formatCurrency(listing.pricePerMonth)} {copy.month}</p>
                 </div>
                 <div className="inline-actions">
                   <Link href={`/admin/listings/${listing.id}`} className="button button-small">
-                    Edit
+                    {copy.edit}
                   </Link>
                   <form action={deleteListingAction}>
                     <input type="hidden" name="id" value={listing.id} />
                     <button type="submit" className="button button-danger button-small">
-                      Delete
+                      {copy.delete}
                     </button>
                   </form>
                 </div>
@@ -73,19 +114,19 @@ export default async function AdminPage() {
 
       <section className="stack-md">
         <div className="section-heading">
-          <h2>Manage bookings</h2>
+          <h2>{copy.manageBookings}</h2>
         </div>
 
         <div className="table-card">
           <table>
             <thead>
               <tr>
-                <th>Guest</th>
-                <th>Facility</th>
-                <th>Resident</th>
-                <th>Start</th>
-                <th>Total</th>
-                <th>Status</th>
+                <th>{copy.guest}</th>
+                <th>{copy.facility}</th>
+                <th>{copy.resident}</th>
+                <th>{copy.start}</th>
+                <th>{copy.total}</th>
+                <th>{copy.status}</th>
               </tr>
             </thead>
             <tbody>
@@ -100,7 +141,7 @@ export default async function AdminPage() {
                   <td>{formatDate(booking.startDate)}</td>
                   <td>{formatCurrency(booking.totalPrice)}</td>
                   <td>
-                    <StatusForm bookingId={booking.id} currentStatus={booking.status} />
+                    <StatusForm bookingId={booking.id} currentStatus={booking.status} locale={locale} />
                   </td>
                 </tr>
               ))}

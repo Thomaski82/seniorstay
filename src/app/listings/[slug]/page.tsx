@@ -5,7 +5,7 @@ import { BookingCard } from "@/components/booking-card";
 import { FavoriteButton } from "@/components/favorite-button";
 import { ReviewForm } from "@/components/review-form";
 import { getCurrentUser } from "@/lib/auth";
-import { getAvailabilitySnapshot, getCareHomeBySlug, parseJsonArray } from "@/lib/care-homes";
+import { getAvailabilitySnapshot, getCareHomeBySlug, parseJsonArray, translateService } from "@/lib/care-homes";
 import { db } from "@/lib/db";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { getLocaleFromSearchParam } from "@/lib/locale";
@@ -121,7 +121,7 @@ export default async function ListingPage({
             <div className="chip-row">
               {services.map((service) => (
                 <span key={service} className="chip">
-                  {service}
+                  {translateService(service, locale)}
                 </span>
               ))}
             </div>
@@ -154,7 +154,7 @@ export default async function ListingPage({
             </div>
 
             {user && user.role !== "ADMIN" ? (
-              <ReviewForm careHomeId={home.id} />
+              <ReviewForm careHomeId={home.id} locale={locale} />
             ) : (
               <p className="muted">{copy.signInToReview}</p>
             )}
@@ -169,6 +169,7 @@ export default async function ListingPage({
               firstAvailable ? new Date(firstAvailable).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10)
             }
             disabled={!Boolean(firstAvailable) || !user}
+            locale={locale}
           />
           {!user && <p className="helper-text">{copy.signInToBook}</p>}
           <div className="card stack-sm">

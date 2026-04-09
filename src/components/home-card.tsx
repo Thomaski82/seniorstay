@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 
-import { getAvailabilitySnapshot, parseJsonArray } from "@/lib/care-homes";
+import { getAvailabilitySnapshot, parseJsonArray, translateService } from "@/lib/care-homes";
 import { formatCurrency } from "@/lib/format";
 import type { Locale } from "@/lib/locale";
 
@@ -78,7 +78,7 @@ export function HomeCard({ home, locale = "en" }: HomeCardProps) {
         <div className="chip-row">
           {services.map((service) => (
             <span key={service} className="chip">
-              {service}
+              {translateService(service, locale)}
             </span>
           ))}
         </div>

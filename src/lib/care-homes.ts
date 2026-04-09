@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { db } from "@/lib/db";
 import { demoHomes } from "@/lib/demo-data";
+import type { Locale } from "@/lib/locale";
 
 export type SearchParams = {
   location?: string;
@@ -19,6 +20,36 @@ export function parseJsonArray(value: string) {
   } catch {
     return [];
   }
+}
+
+const serviceLabels: Record<string, { en: string; pl: string }> = {
+  "24/7 medical care": { en: "24/7 medical care", pl: "Opieka medyczna 24/7" },
+  "Dementia care": { en: "Dementia care", pl: "Opieka demencyjna" },
+  Rehabilitation: { en: "Rehabilitation", pl: "Rehabilitacja" },
+  Physiotherapy: { en: "Physiotherapy", pl: "Fizjoterapia" },
+  "Garden access": { en: "Garden access", pl: "Dostep do ogrodu" },
+  "Medical care": { en: "Medical care", pl: "Opieka medyczna" },
+  "Nutrition planning": { en: "Nutrition planning", pl: "Plan zywieniowy" },
+  "Mobility assistance": { en: "Mobility assistance", pl: "Wsparcie mobilnosci" },
+  "Private rooms": { en: "Private rooms", pl: "Prywatne pokoje" },
+  "Medication support": { en: "Medication support", pl: "Wsparcie lekowe" },
+  "Social activities": { en: "Social activities", pl: "Aktywnosci spoleczne" },
+  "Medical visits": { en: "Medical visits", pl: "Wizyty medyczne" },
+  "Accessible bathrooms": { en: "Accessible bathrooms", pl: "Dostepne lazienki" },
+  "Secure memory unit": { en: "Secure memory unit", pl: "Bezpieczny oddzial pamieciowy" },
+  "Occupational therapy": { en: "Occupational therapy", pl: "Terapia zajeciowa" },
+  "24/7 nursing": { en: "24/7 nursing", pl: "Pielegniarstwo 24/7" },
+  "Flexible stay": { en: "Flexible stay", pl: "Elastyczny pobyt" },
+  "Medical supervision": { en: "Medical supervision", pl: "Nadzor medyczny" },
+  Laundry: { en: "Laundry", pl: "Pralnia" },
+  "Meal plans": { en: "Meal plans", pl: "Plany posilkow" },
+  Transportation: { en: "Transportation", pl: "Transport" }
+};
+
+export function translateService(service: string, locale: Locale) {
+  const entry = serviceLabels[service];
+  if (!entry) return service;
+  return locale === "pl" ? entry.pl : entry.en;
 }
 
 export function getAvailabilitySnapshot(home: { availabilities?: Array<{ availableAll: number }> }) {

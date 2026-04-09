@@ -18,6 +18,12 @@ const BOOKING_STATUSES = ["PENDING", "CONFIRMED", "CANCELLED"] as const;
 type BookingStatus = (typeof BOOKING_STATUSES)[number];
 type UserRole = "USER" | "ADMIN";
 
+const STATUS_LABELS_PL: Record<BookingStatus, string> = {
+  PENDING: "oczekujaca",
+  CONFIRMED: "potwierdzona",
+  CANCELLED: "anulowana"
+};
+
 const authSchema = z.object({
   name: z.string().min(2).optional(),
   email: z.string().email(),
@@ -190,6 +196,7 @@ export async function toggleFavoriteAction(formData: FormData) {
 
 export async function createBookingAction(formData: FormData) {
   const user = await requireUser();
+  const locale = String(formData.get("locale") || "en") === "pl" ? "pl" : "en";
   const parsed = bookingSchema.safeParse({
     careHomeId: formData.get("careHomeId"),
     residentName: formData.get("residentName"),
@@ -246,8 +253,11 @@ export async function createBookingAction(formData: FormData) {
     await tx.notification.create({
       data: {
         userId: user.id,
-        title: "Booking confirmed",
-        body: `${home.name} is reserved starting ${startDate.toLocaleDateString()}.`
+        title: locale === "pl" ? "Rezerwacja potwierdzona" : "Booking confirmed",
+        body:
+          locale === "pl"
+            ? `${home.name} jest zarezerwowany od ${startDate.toLocaleDateString("pl-PL")}.`
+            : `${home.name} is reserved starting ${startDate.toLocaleDateString()}.`
       }
     });
   });
@@ -366,6 +376,7 @@ export async function deleteListingAction(formData: FormData) {
 
 export async function updateBookingStatusAction(formData: FormData) {
   await requireAdmin();
+  const locale = String(formData.get("locale") || "en") === "pl" ? "pl" : "en";
   const bookingId = String(formData.get("bookingId"));
   const status = String(formData.get("status")) as BookingStatus;
 
@@ -385,8 +396,11 @@ export async function updateBookingStatusAction(formData: FormData) {
   await db.notification.create({
     data: {
       userId: booking.userId,
-      title: `Booking ${status.toLowerCase()}`,
-      body: `Your booking for ${booking.careHome.name} is now ${status.toLowerCase()}.`
+      title: locale === "pl" ? `Rezerwacja ${STATUS_LABELS_PL[status]}` : `Booking ${status.toLowerCase()}`,
+      body:
+        locale === "pl"
+          ? `Twoja rezerwacja w ${booking.careHome.name} ma teraz status ${STATUS_LABELS_PL[status]}.`
+          : `Your booking for ${booking.careHome.name} is now ${status.toLowerCase()}.`
     }
   });
 
