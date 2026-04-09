@@ -109,4 +109,34 @@ docker run -p 3000:3000 --env-file .env seniorstay
 - Listings store photo URLs and service tags in JSON-encoded strings to keep the schema simple while remaining easy to evolve later.
 - The temporary demo-mode fallback is still present for browse pages; for a strict production-only deployment, we can remove that next.
 
+## Importing external listings
+
+SeniorStay now includes a staged import workflow for public directory data.
+
+1. Update the database schema:
+
+```bash
+npm run db:push
+```
+
+2. Scrape `domyseniora.pl` into JSON:
+
+```bash
+npm run scrape:domyseniora
+```
+
+3. Scrape and load into the admin review queue:
+
+```bash
+npm run scrape:domyseniora -- --import
+```
+
+4. Open the admin import review page:
+
+```text
+/admin/imports
+```
+
+Imported homes are staged in `ImportedCareHome` first, then published manually into live marketplace listings from the admin panel.
+
 

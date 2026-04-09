@@ -23,6 +23,7 @@ export default async function AdminPage({
           title: "Zarzadzaj ofertami i rezerwacjami",
           create: "Utworz lub edytuj oferte",
           existing: "Istniejace oferty",
+          imports: "Importy do weryfikacji",
           month: "/ miesiac",
           edit: "Edytuj",
           delete: "Usun",
@@ -39,6 +40,7 @@ export default async function AdminPage({
           title: "Manage listings and bookings",
           create: "Create or update listing",
           existing: "Existing listings",
+          imports: "Imports to review",
           month: "/ month",
           edit: "Edit",
           delete: "Delete",
@@ -71,6 +73,9 @@ export default async function AdminPage({
           <p className="eyebrow">{copy.panel}</p>
           <h1>{copy.title}</h1>
         </div>
+        <Link href={`/admin/imports${locale === "pl" ? "?lang=pl" : ""}`} className="button">
+          {copy.imports}
+        </Link>
       </section>
 
       <section className="admin-grid">

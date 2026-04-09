@@ -374,6 +374,96 @@ export async function deleteListingAction(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function publishImportedCareHomeAction(formData: FormData) {
+  await requireAdmin();
+  const importedId = String(formData.get("importedId"));
+
+  const imported = await db.importedCareHome.findUnique({
+    where: { id: importedId }
+  });
+
+  if (!imported) {
+    throw new Error("Imported care home not found.");
+  }
+
+  const slug = await createUniqueSlug(imported.slugCandidate);
+  const photos = imported.photos || "[]";
+  const services = imported.services || "[]";
+
+  const careHome = await db.careHome.create({
+    data: {
+      name: imported.name,
+      slug,
+      city: imported.city,
+      country: imported.country,
+      address: imported.address,
+      pricePerMonth: imported.pricePerMonth ?? 0,
+      shortDescription: imported.shortDescription,
+      description: imported.description,
+      photos,
+      services,
+      sourceName: imported.sourceName,
+      sourceUrl: imported.sourceUrl,
+      externalId: imported.externalId ?? undefined,
+      lastSyncedAt: new Date(),
+      ratingCache: imported.rating ?? 0,
+      reviewCountCache: imported.reviewCount ?? 0
+    }
+  });
+
+  const monthStart = new Date();
+  monthStart.setUTCDate(1);
+  monthStart.setUTCHours(0, 0, 0, 0);
+
+  await db.availability.upsert({
+    where: {
+      careHomeId_monthStart: {
+        careHomeId: careHome.id,
+        monthStart
+      }
+    },
+    update: {
+      availableAll: imported.freeRooms ?? (imported.hasFreeRooms ? 1 : 0)
+    },
+    create: {
+      careHomeId: careHome.id,
+      monthStart,
+      availableAll: imported.freeRooms ?? (imported.hasFreeRooms ? 1 : 0)
+    }
+  });
+
+  await db.importedCareHome.update({
+    where: { id: imported.id },
+    data: {
+      status: "PUBLISHED",
+      publishedAt: new Date(),
+      reviewedAt: new Date(),
+      rejectionReason: null
+    }
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/imports");
+  revalidatePath("/");
+}
+
+export async function rejectImportedCareHomeAction(formData: FormData) {
+  await requireAdmin();
+  const importedId = String(formData.get("importedId"));
+  const reason = String(formData.get("reason") || "Rejected by admin");
+
+  await db.importedCareHome.update({
+    where: { id: importedId },
+    data: {
+      status: "REJECTED",
+      reviewedAt: new Date(),
+      rejectionReason: reason
+    }
+  });
+
+  revalidatePath("/admin/imports");
+}
+
 export async function updateBookingStatusAction(formData: FormData) {
   await requireAdmin();
   const locale = String(formData.get("locale") || "en") === "pl" ? "pl" : "en";

@@ -33,6 +33,10 @@ model CareHome {
   shortDescription String
   photos           String
   services         String
+  sourceName       String?
+  sourceUrl        String?
+  externalId       String?
+  lastSyncedAt     DateTime?
   ratingCache      Float          @default(0)
   reviewCountCache Int            @default(0)
   featured         Boolean        @default(false)
@@ -42,6 +46,35 @@ model CareHome {
   bookings         Booking[]
   favorites        Favorite[]
   reviews          Review[]
+}
+
+model ImportedCareHome {
+  id               String   @id @default(cuid())
+  sourceName       String
+  sourceUrl        String
+  externalId       String?  @unique
+  name             String
+  slugCandidate    String
+  city             String
+  country          String
+  address          String
+  pricePerMonth    Int?
+  description      String
+  shortDescription String
+  photos           String
+  services         String
+  rating           Float?
+  reviewCount      Int?
+  freeRooms        Int?
+  occupiedRooms    Int?
+  hasFreeRooms     Boolean  @default(false)
+  rawData          String
+  status           String   @default("PENDING")
+  reviewedAt       DateTime?
+  publishedAt      DateTime?
+  rejectionReason  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model Availability {

@@ -620,6 +620,16 @@ th {
   align-items: center;
 }
 
+.raw-import {
+  padding: 1rem;
+  border-radius: 16px;
+  background: #0f172a;
+  color: #e2e8f0;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .status-form select {
   min-width: 140px;
 }
