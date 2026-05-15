@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { PrismaClient } from "@prisma/client";
 import * as cheerio from "cheerio";
+import iconv from "iconv-lite";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
@@ -95,7 +96,22 @@ async function fetchHtml(url: string) {
     throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
   }
 
-  return response.text();
+  const contentType = response.headers.get("content-type") || "";
+  const buffer = Buffer.from(await response.arrayBuffer());
+  const headerCharset = contentType.match(/charset=([^;]+)/i)?.[1]?.toLowerCase();
+
+  if (headerCharset && headerCharset !== "utf-8" && headerCharset !== "utf8") {
+    return iconv.decode(buffer, headerCharset);
+  }
+
+  const utf8Html = buffer.toString("utf8");
+  const metaCharset = utf8Html.match(/charset=([a-zA-Z0-9\-_]+)/i)?.[1]?.toLowerCase();
+
+  if (metaCharset && metaCharset !== "utf-8" && metaCharset !== "utf8") {
+    return iconv.decode(buffer, metaCharset);
+  }
+
+  return utf8Html;
 }
 
 function parseAddressLine(blockText: string) {
